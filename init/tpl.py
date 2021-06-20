@@ -12,15 +12,14 @@ conf_dir = root_dir / 'conf'
 log_dir = root_dir / 'log'
 output_dir = root_dir / 'output'
 source_dir = root_dir / 'source'
+
+dir_tuple = (conf_dir, log_dir, output_dir, source_dir)
+for dir in dir_tuple:
+    dir.mkdir(exist_ok=True, parents=True)
 '''
 
-gitignore_str = '''# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# C extensions
-*.so
+gitignore_str = '''# Pycache
+__pycache__
 
 # Distribution / packaging
 .Python
@@ -98,18 +97,6 @@ target/
 profile_default/
 ipython_config.py
 
-# pyenv
-#   For a library or package, you might want to ignore these files since the code is
-#   intended to run in multiple environments; otherwise, check them in:
-# .python-version
-
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
-
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow
 __pypackages__/
 
@@ -155,8 +142,8 @@ cython_debug/
 
 # personal
 .vscode
-log
-output'''
+log/
+output/'''
 
 launch_str = '''#!/usr/bin/env/python3
 # -*- coding:utf-8 -*-

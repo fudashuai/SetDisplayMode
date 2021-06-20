@@ -3,7 +3,7 @@
 
 # Author: funchan
 # CreateDate: 2021-05-12 12:57:40
-# Description: 根据电源模式设置屏幕亮度、刷新率，适用于联想小新PRO 16 GTX1650
+# Description: 在保证笔记本电脑屏幕处于最佳分辨率的前提下，根据电源模式自动设置屏幕亮度、刷新率，适用于安装了Windows系统的笔记本电脑
 
 import ctypes
 import locale
