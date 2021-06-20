@@ -15,7 +15,7 @@ if not exist .venv\scripts\python.exe (
         %LocalAppData%\Programs\Python\Python3X-32\python -m venv .venv 1>nul 2>nul)
 )
 
-.venv\scripts\python.exe core\launch.py
+.venv\scripts\python.exe core\task.py
 
 echo 程序安装成功，请按任意键关闭本窗口
 pause >nul
