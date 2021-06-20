@@ -1,6 +1,6 @@
 @echo off
 
-:: ç”³è¯·ç®¡ç†å‘˜æƒé™
+:: ÉêÇë¹ÜÀíÔ±È¨ÏÞ
 %1 %2
 ver|find "5.">nul&&goto :Admin
 mshta vbscript:createobject("shell.application").shellexecute("%~s0","goto :Admin","","runas",1)(window.close)&goto :eof
@@ -17,5 +17,5 @@ if not exist .venv\scripts\python.exe (
 
 .venv\scripts\python.exe core\launch.py
 
-echo ç¨‹åºå®‰è£…æˆåŠŸï¼Œè¯·æŒ‰ä»»æ„é”®å…³é—­æœ¬çª—å£
+echo ³ÌÐò°²×°³É¹¦£¬Çë°´ÈÎÒâ¼ü¹Ø±Õ±¾´°¿Ú
 pause >nul

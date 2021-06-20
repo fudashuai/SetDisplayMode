@@ -122,6 +122,7 @@ def create_task():
 
 
 def main():
+    logger = log(log_dir, log_level=logging.INFO)
     flag_file = Path(r'C:\Windows\System32\Tasks\SetDisplayMode')
     if not flag_file.exists():
         create_task()
@@ -152,5 +153,4 @@ def main():
 
 
 if __name__ == '__main__':
-    logger = log(log_dir, log_level=logging.INFO)
     main()
