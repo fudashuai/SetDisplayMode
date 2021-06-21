@@ -13,6 +13,14 @@ from zipfile import ZipFile
 
 
 def pack_pyd(cur_dir, excepts=('launch.py', 'init.py')):
+    while True:
+        try:
+            from Cython.Build import cythonize
+            break
+        except ImportError:
+            run('pip install cython', shell=True, stdout=PIPE, stderr=PIPE)
+            time.sleep(5)
+
     build_dir_list = set()
     temp_dir_list = set()
     temp_file_list = set()
@@ -87,17 +95,9 @@ def tar():
 
 
 if __name__ == '__main__':
-    while True:
-        try:
-            from Cython.Build import cythonize
-            break
-        except ImportError:
-            run('pip install cython', shell=True, stdout=PIPE, stderr=PIPE)
-            time.sleep(5)
-
     pwd = Path(__file__).resolve()
     root_dir = pwd.parent.parent
     core_dir = root_dir / 'core'
 
-    pack_pyd(core_dir)
+    # pack_pyd(core_dir)
     tar()
