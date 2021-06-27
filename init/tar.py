@@ -27,13 +27,16 @@ def pack_pyd(cur_dir, excepts=('launch.py', 'init.py')):
 
     for file in cur_dir.rglob('*.py'):
         if file.name not in excepts:
+            _file = str(file)
             build_dir = file.parent
+            _build_dir = str(build_dir)
             build_temp_dir = build_dir / 'temp'
+            _build_temp_dir = str(build_temp_dir)
 
             try:
-                setup(ext_modules=cythonize([str(file)]),
+                setup(ext_modules=cythonize([_file]),
                       script_args=[
-                          "build_ext", "-b", build_dir, "-t", build_temp_dir
+                          "build_ext", "-b", _build_dir, "-t", _build_temp_dir
                       ])
 
                 build_dir_list.add(build_dir)

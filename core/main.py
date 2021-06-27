@@ -43,7 +43,7 @@ def get_system_power_status():
 def change_display_brightness(brightness):
     if 40 <= brightness <= 100:
         worker = wmi.WMI(namespace='root\WMI').WmiMonitorBrightnessMethods()[0]
-        worker.WmiSetBrightness(brightness, Timeout=500)
+        worker.WmiSetBrightness(Brightness=brightness, Timeout=500)
 
 
 def get_required_devmode():

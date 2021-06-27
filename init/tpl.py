@@ -14,8 +14,8 @@ output_dir = root_dir / 'output'
 source_dir = root_dir / 'source'
 
 dir_tuple = (conf_dir, log_dir, output_dir, source_dir)
-for dir in dir_tuple:
-    dir.mkdir(exist_ok=True, parents=True)
+for _dir in dir_tuple:
+    _dir.mkdir(exist_ok=True, parents=True)
 '''
 
 gitignore_str = '''# Pycache
