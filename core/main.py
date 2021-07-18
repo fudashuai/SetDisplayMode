@@ -37,9 +37,9 @@ def get_system_power_status():
     return system_power_status
 
 
-def change_brightness(brightness):
+def set_brightness(brightness):
     nircmd = bin_dir / 'nircmd' / 'nircmd.exe'
-    run(f'{nircmd} changebrightness {brightness}',
+    run(f'{nircmd} setbrightness {brightness}',
         shell=True,
         stdout=PIPE,
         stderr=PIPE)
@@ -71,8 +71,7 @@ def main():
             brightness = 50 + int(power_percent * 0.3)
             devmode = DEVMODE('2560', '1600', '32', '60')
 
-        change_brightness(100)
-        change_brightness(brightness - 100)
+        set_brightness(brightness)
         set_display(devmode)
 
         logger.info(
