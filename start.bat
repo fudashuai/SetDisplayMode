@@ -34,4 +34,7 @@ if not exist .venv\scripts\python.exe (
     )
 )
 
-.venv\scripts\python.exe core\launch.py
+bin\nircmd\nircmd.exe shortcut "%~dp0.venv\scripts\pythonw.exe" "%AppData%\Microsoft\Windows\Start Menu\Programs\Startup" "SetDisplayMode" "%~dp0core\launch.py" "%~dp0res\main.ico"
+start .venv\scripts\pythonw.exe core\launch.py
+echo success, press any key to exit.
+pasue >nul
