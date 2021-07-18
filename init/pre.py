@@ -35,7 +35,6 @@ def creat_py_venv():
                     stdout=PIPE,
                     stderr=PIPE)
                 flags = False
-                print(f'create python venv')
 
             else:
                 raise ValueError(f'''failed to create python venv
@@ -58,10 +57,10 @@ python3 -m venv .venv
 
 def pre():
     appname = root_dir.stem
-    author = input('author: ') or 'funchan'
+    author = input('author: ')
 
     createdate = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-    description = input('description: ') or ' '
+    description = input('description: ') or ''
 
     info = {
         'appname': appname,
@@ -107,17 +106,22 @@ def pre():
 
         time.sleep(2)
 
+    bin_dir = root_dir / 'bin'
     conf_dir = root_dir / 'conf'
     core_dir = root_dir / 'core'
+    db_dir = root_dir / 'db'
+    docs_dir = root_dir / 'docs'
     init_dir = root_dir / 'init'
+    input_dir = root_dir / 'input'
     log_dir = root_dir / 'log'
     output_dir = root_dir / 'output'
-    source_dir = root_dir / 'source'
+    res_dir = root_dir / 'res'
+    tests_dir = root_dir / 'tests'
 
-    dir_tuple = (conf_dir, core_dir, init_dir, log_dir, output_dir, source_dir)
-    for dir in dir_tuple:
-        dir.mkdir(exist_ok=True, parents=True)
-        print(f'create dir: {dir}')
+    dir_tuple = (bin_dir, conf_dir, core_dir, db_dir, docs_dir, init_dir,
+                 input_dir, log_dir, output_dir, res_dir, tests_dir)
+    for _dir in dir_tuple:
+        _dir.mkdir(exist_ok=True, parents=True)
 
     dirs_file = core_dir / 'dirs.py'
     gitignore_file = root_dir / '.gitignore'
@@ -141,7 +145,6 @@ def pre():
             s = s.safe_substitute(info)
             with open(file_path, 'w', encoding=encoding) as fp:
                 fp.write(s)
-            print(f'create file: {file_path}')
 
     print('everything is ok, enjoy')
 

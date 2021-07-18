@@ -8,12 +8,20 @@ from pathlib import Path
 
 pwd = Path(__file__).resolve()
 root_dir = pwd.parent.parent
+bin_dir = root_dir / 'bin'
 conf_dir = root_dir / 'conf'
+core_dir = root_dir / 'core'
+db_dir = root_dir / 'db'
+docs_dir = root_dir / 'docs'
+init_dir = root_dir / 'init'
+input_dir = root_dir / 'input'
 log_dir = root_dir / 'log'
 output_dir = root_dir / 'output'
-source_dir = root_dir / 'source'
+res_dir = root_dir / 'res'
+tests_dir = root_dir / 'tests'
 
-dir_tuple = (conf_dir, log_dir, output_dir, source_dir)
+dir_tuple = (bin_dir, conf_dir, core_dir, db_dir, docs_dir, init_dir,
+             input_dir, log_dir, output_dir, res_dir, tests_dir)
 for _dir in dir_tuple:
     _dir.mkdir(exist_ok=True, parents=True)
 '''
@@ -294,52 +302,104 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 
-def log(log_dir,
-        log_filename=None,
-        log_level=logging.DEBUG,
-        log_maxBytes=5 * 1024 * 1024,
-        backupCount=5):
-    logger = logging.getLogger(__name__)
-    logger.setLevel(log_level)
+class Logger(object):
+    def __init__(self,
+                 log_dir: Path,
+                 log_file_name: str = None,
+                 maxBytes=5 * 1024 * 1024,
+                 backupCount=5):
 
-    if not logger.handlers:
-        root_dir_name = Path(__file__).resolve().parent.parent.stem
-        level_dict = logging._levelToName
-        filename = log_filename or root_dir_name
-        logfile = f'{filename}-{level_dict[log_level]}.log'
-        log_path = Path(log_dir, logfile)
+        self.log_dir = log_dir
+        self.log_file_name = log_file_name
+        self.maxBytes = maxBytes
+        self.backupCount = backupCount
+        self.formatter = logging.Formatter(
+            fmt='%(asctime)s %(levelname)s\t%(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S')
+        self.filehandlers = {}
+        self.steamhandler = None
 
-        ch = logging.StreamHandler()
-        fh = RotatingFileHandler(log_path,
-                                 encoding='utf-8',
-                                 maxBytes=log_maxBytes,
-                                 backupCount=backupCount)
+    def __create_handler(self, log_level: int):
+        if log_level not in self.filehandlers.keys():
+            if self.log_file_name:
+                log_file = self.log_dir / f'{self.log_file_name} - {logging.getLevelName(log_level)}.log'
+            else:
+                log_file = self.log_dir / f'{logging.getLevelName(log_level)}.log'
 
-        if log_level == logging.DEBUG:
-            formatter = logging.Formatter(
-                fmt=
-                '%(asctime)s-%(levelname)s-%(module)s-%(lineno)d  %(message)s',
-                datefmt='%Y-%m-%d %H:%M:%S')
-        else:
-            formatter = logging.Formatter(
-                fmt='%(asctime)s-%(levelname)s  %(message)s',
-                datefmt='%Y-%m-%d %H:%M:%S')
+            filehandler = RotatingFileHandler(log_file,
+                                              encoding='utf-8',
+                                              maxBytes=self.maxBytes,
+                                              backupCount=self.backupCount)
+            filehandler.setLevel(log_level)
+            filehandler.setFormatter(self.formatter)
+            self.filehandlers[log_level] = filehandler
 
-        ch.setFormatter(formatter)
-        ch.setLevel(log_level)
-        fh.setFormatter(formatter)
-        fh.setLevel(log_level)
+        if not self.steamhandler:
+            steamhandler = logging.StreamHandler()
+            steamhandler.setFormatter(self.formatter)
+            steamhandler.setLevel(logging.INFO)
+            self.steamhandler = steamhandler
 
-        logger.addHandler(ch)
-        logger.addHandler(fh)
+    def debug(self, message):
+        logger = logging.getLogger('debug')
+        log_level = logging.DEBUG
+        logger.setLevel(log_level)
 
-    return logger
+        self.__create_handler(log_level)
+        logger.addHandler(self.filehandlers[log_level])
+        logger.addHandler(self.steamhandler)
+
+        logger.debug(message)
+
+    def info(self, message):
+        logger = logging.getLogger('info')
+        log_level = logging.INFO
+        logger.setLevel(log_level)
+
+        self.__create_handler(log_level)
+        logger.addHandler(self.filehandlers[log_level])
+        logger.addHandler(self.steamhandler)
+
+        logger.info(message)
+
+    def warning(self, message):
+        logger = logging.getLogger('warning')
+        log_level = logging.WARNING
+        logger.setLevel(log_level)
+
+        self.__create_handler(log_level)
+        logger.addHandler(self.filehandlers[log_level])
+        logger.addHandler(self.steamhandler)
+
+        logger.warning(message)
+
+    def error(self, message):
+        logger = logging.getLogger('error')
+        log_level = logging.ERROR
+        logger.setLevel(log_level)
+
+        self.__create_handler(log_level)
+        logger.addHandler(self.filehandlers[log_level])
+        logger.addHandler(self.steamhandler)
+
+        logger.error(message)
+
+    def critical(self, message):
+        logger = logging.getLogger('critical')
+        log_level = logging.CRITICAL
+        logger.setLevel(log_level)
+
+        self.__create_handler(log_level)
+        logger.addHandler(self.filehandlers[log_level])
+        logger.addHandler(self.steamhandler)
+
+        logger.critical(message)
 
 
 if __name__ == '__main__':
-    log_dir = Path(__file__).parent / 'log'
+    log_dir = Path(__file__).parent.parent / 'log'
     log_dir.mkdir(exist_ok=True, parents=True)
-    logger = log(log_dir)
+    logger = Logger(log_dir)
 
     logger.debug('debug info')
     logger.info('info info')
@@ -356,7 +416,7 @@ main_str = '''#!/usr/bin/env/python3
 # Description: $description
 
 from dirs import *
-from log import log
+from log import Logger
 
 # write your code here ...
 
@@ -380,27 +440,112 @@ readme_str = '''## $appname
 
 ### 文件
 
-* start.bat： 启动程序
+* start.bat： Windows启动程序
+* start.sh： Linux启动程序
 
 ### 目录
-
-* .venv： Python虚拟环境
-* conf： 配置信息
-* core： 主程序
-* init：程序初始化、打包
-* log： 运行日志
-* output： 运行结果
-* source： 引用资源'''
+<table>
+    <tr>
+        <th>序号</th>
+        <th>名称</th>
+        <th>说明</th>
+    </tr>
+    <tr>
+        <td>1</td>
+        <td>.venv</td>
+        <td>Python虚拟环境</td>
+    </tr>
+    <tr>
+        <td>2</td>
+        <td>bin</td>
+        <td>依赖的可执行程序</td>
+    </tr>
+    <tr>
+        <td>3</td>
+        <td>conf</td>
+        <td>配置信息</td>
+    </tr>
+    <tr>
+        <td>4</td>
+        <td>core</td>
+        <td>核心代码</td>
+    </tr>
+    <tr>
+        <td>5</td>
+        <td>db</td>
+        <td>数据库文件</td>
+    </tr>
+    <tr>
+        <td>6</td>
+        <td>docs</td>
+        <td>说明文档</td>
+    </tr>
+    <tr>
+        <td>7</td>
+        <td>init</td>
+        <td>程序初始化、打包</td>
+    </tr>
+    <tr>
+        <td>8</td>
+        <td>input</td>
+        <td>用户输入文件</td>
+    </tr>
+    <tr>
+        <td>9</td>
+        <td>log</td>
+        <td>运行日志</td>
+    </tr>
+    <tr>
+        <td>10</td>
+        <td>output</td>
+        <td>运行结果</td>
+    </tr>
+    <tr>
+        <td>11</td>
+        <td>res</td>
+        <td>引用资源</td>
+    </tr>
+    <tr>
+        <td>12</td>
+        <td>tests</td>
+        <td>测试代码</td>
+    </tr>
+</table>'''
 
 start_str_cmd = r'''@echo off
 
-cd %~dp0
+cd /d %~dp0
+
+set url_1="https://cdn.npm.taobao.org/dist/python/3.7.4/python-3.7.4.exe"
+set url_2="https://www.python.org/ftp/python/3.7.4/python-3.7.4.exe"
+
+if "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
+    set python_dir=%LocalAppData%\Programs\Python37-32
+) else (
+    set python_dir=%LocalAppData%\Programs\Python37
+)
+
+set temp_file=%Temp%\python-3.7.4.exe
 
 if not exist .venv\scripts\python.exe (
     python -m venv .venv 1>nul 2>nul
+
     if not exist .venv\scripts\python.exe (
-        init\python.exe /passive /quiet TargetDir=%LocalAppData%\Programs\Python\Python3X-32 1>nul 2>nul
-        %LocalAppData%\Programs\Python\Python3X-32\python -m venv .venv 1>nul 2>nul)
+        certutil -urlcache -split -f %url_1% %temp_file% 1>nul 2>nul
+
+        if %errorlevel% NEQ 0 (
+            certutil -urlcache -split -f %url_2% %temp_file% 1>nul 2>nul
+
+            if %errorlevel% NEQ 0 (
+                echo Error: failed to download python, check the network!
+                pause >nul
+                exit
+            )
+        )
+
+        %temp_file% /passive /quiet TargetDir=%python_dir%
+        %python_dir%\python.exe -m venv .venv 1>nul 2>null
+    )
 )
 
 .venv\scripts\python.exe core\launch.py'''

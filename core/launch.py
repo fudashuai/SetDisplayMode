@@ -97,7 +97,7 @@ def init(flags, *, module=None):
                         stdout=PIPE,
                         stderr=PIPE)
 
-                    print(f'installing package: {package}')
+                    print(f'install package: {package}')
                     time.sleep(1)
 
     else:
@@ -113,7 +113,7 @@ def init(flags, *, module=None):
             raise NotImplementedError(
                 p.stderr.decode(system_encoding, errors='ignore'))
 
-        print(f'installing package: {module}')
+        print(f'install package: {module}')
 
         run(f'{venv_pip_path} freeze >requirements.txt',
             shell=True,

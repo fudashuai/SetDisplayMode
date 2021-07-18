@@ -1,21 +1,37 @@
 @echo off
 
-:: 申请管理员权限
-%1 %2
-ver|find "5.">nul&&goto :Admin
-mshta vbscript:createobject("shell.application").shellexecute("%~s0","goto :Admin","","runas",1)(window.close)&goto :eof
-:Admin
+cd /d %~dp0
 
-cd %~dp0
+set url_1="https://cdn.npm.taobao.org/dist/python/3.7.4/python-3.7.4.exe"
+set url_2="https://www.python.org/ftp/python/3.7.4/python-3.7.4.exe"
+
+if "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
+    set python_dir=%LocalAppData%\Programs\Python37-32
+) else (
+    set python_dir=%LocalAppData%\Programs\Python37
+)
+
+set temp_file=%Temp%\python-3.7.4.exe
 
 if not exist .venv\scripts\python.exe (
     python -m venv .venv 1>nul 2>nul
+
     if not exist .venv\scripts\python.exe (
-        init\python.exe /passive /quiet TargetDir=%LocalAppData%\Programs\Python\Python3X-32 1>nul 2>nul
-        %LocalAppData%\Programs\Python\Python3X-32\python -m venv .venv 1>nul 2>nul)
+        certutil -urlcache -split -f %url_1% %temp_file% 1>nul 2>nul
+
+        if %errorlevel% NEQ 0 (
+            certutil -urlcache -split -f %url_2% %temp_file% 1>nul 2>nul
+
+            if %errorlevel% NEQ 0 (
+                echo Error: failed to download python, check the network!
+                pause >nul
+                exit
+            )
+        )
+
+        %temp_file% /passive /quiet TargetDir=%python_dir%
+        %python_dir%\python.exe -m venv .venv 1>nul 2>null
+    )
 )
 
-.venv\scripts\python.exe core\task.py
-
-echo 程序安装成功，请按任意键关闭本窗口
-pause >nul
+.venv\scripts\python.exe core\launch.py

@@ -3,19 +3,16 @@
 
 # Author: funchan
 # CreateDate: 2021-05-12 12:57:40
-# Description: 在保证笔记本电脑屏幕处于最佳分辨率的前提下，根据电源模式自动设置屏幕亮度、刷新率，适用于安装了Windows系统的笔记本电脑
+# Description: 适用于 联想小新 PRO16 GTX1650。程序每2分钟检查一次电脑是否接通电源、电池余量，如果电脑接通电源，屏幕亮度调为100%，屏幕刷新率调为120；如果电脑使用电池供电，屏幕亮度根据电池余量从80%逐步降至50%，屏幕刷新率调为60。
 
 import ctypes
-import logging
 import time
 from collections import namedtuple
 from ctypes import wintypes
-
-import win32api
-import wmi
+from subprocess import PIPE, run
 
 from dirs import *
-from log import log
+from log import Logger
 
 
 def get_system_power_status():
@@ -40,60 +37,26 @@ def get_system_power_status():
     return system_power_status
 
 
-def change_display_brightness(brightness):
-    if 40 <= brightness <= 100:
-        worker = wmi.WMI(namespace='root\WMI').WmiMonitorBrightnessMethods()[0]
-        worker.WmiSetBrightness(Brightness=brightness, Timeout=500)
+def change_brightness(brightness):
+    nircmd = bin_dir / 'nircmd' / 'nircmd.exe'
+    run(f'{nircmd} changebrightness {brightness}',
+        shell=True,
+        stdout=PIPE,
+        stderr=PIPE)
 
 
-def get_required_devmode():
-    Devmode = namedtuple(
-        'Devmode', ['index', 'width', 'height', 'pixel', 'bit', 'frequency'])
-    devmode_list = []
-
-    i = 0
-    while True:
-        try:
-            ds = win32api.EnumDisplaySettings(None, i)
-            devmode_list.append(
-                Devmode(i, ds.PelsWidth, ds.PelsHeight,
-                        ds.PelsWidth * ds.PelsHeight, ds.BitsPerPel,
-                        ds.DisplayFrequency))
-        except BaseException:
-            break
-
-        i += 1
-
-    max_pixel = max([d.pixel for d in devmode_list])
-    max_bit = max([d.bit for d in devmode_list if d.pixel == max_pixel])
-    required_devmode_list = [
-        d for d in devmode_list if (d.pixel == max_pixel and d.bit == max_bit)
-    ]
-    required_devmode_list.sort(key=lambda x: x.frequency, reverse=True)
-
-    if len(required_devmode_list) >= 2:
-        devmode_performance_index = required_devmode_list[0].index
-        devmode_savepower_index = required_devmode_list[-1].index
-    else:
-        devmode_performance_index = devmode_savepower_index = required_devmode_list[
-            0].index
-
-    devmode_performance = win32api.EnumDisplaySettings(
-        None, devmode_performance_index)
-    devmode_savepower = win32api.EnumDisplaySettings(None,
-                                                     devmode_savepower_index)
-
-    return devmode_performance, devmode_savepower
-
-
-def change_display_mode(devmode):
-    win32api.ChangeDisplaySettings(devmode, 0)
+def set_display(devmode):
+    nircmd = bin_dir / 'nircmd' / 'nircmd.exe'
+    run(f'{nircmd} setdisplay {" ".join(devmode)}',
+        shell=True,
+        stdout=PIPE,
+        stderr=PIPE)
 
 
 def main():
-    logger = log(log_dir, log_level=logging.INFO)
-
-    devmode_performance, devmode_savepower = get_required_devmode()
+    logger = Logger(log_dir)
+    DEVMODE = namedtuple('DEVMODE',
+                         ['width', 'height', 'color_bits', 'refresh_rate'])
 
     while True:
         system_power_status = get_system_power_status()
@@ -102,17 +65,17 @@ def main():
 
         if power_plugged:
             brightness = 100
-            devmode = devmode_performance
+            devmode = DEVMODE('2560', '1600', '32', '120')
 
         else:
             brightness = 50 + int(power_percent * 0.3)
-            devmode = devmode_savepower
+            devmode = DEVMODE('2560', '1600', '32', '60')
 
-        change_display_brightness(brightness)
-        change_display_mode(devmode)
+        change_brightness(brightness)
+        set_display(devmode)
 
         logger.info(
-            f'外接电源：{power_plugged}, 电池余量：{power_percent}%, 屏幕亮度：{brightness}%, 屏幕刷新率：{devmode.DisplayFrequency}'
+            f'外接电源：{power_plugged}, 电池余量：{power_percent}%, 屏幕亮度：{brightness}%, 屏幕刷新率：{devmode.refresh_rate}'
         )
 
         time.sleep(120)

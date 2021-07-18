@@ -6,52 +6,104 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 
-def log(log_dir,
-        log_filename=None,
-        log_level=logging.DEBUG,
-        log_maxBytes=5 * 1024 * 1024,
-        backupCount=5):
-    logger = logging.getLogger(__name__)
-    logger.setLevel(log_level)
+class Logger(object):
+    def __init__(self,
+                 log_dir: Path,
+                 log_file_name: str = None,
+                 maxBytes=5 * 1024 * 1024,
+                 backupCount=5):
 
-    if not logger.handlers:
-        root_dir_name = Path(__file__).resolve().parent.parent.stem
-        level_dict = logging._levelToName
-        filename = log_filename or root_dir_name
-        logfile = f'{filename}-{level_dict[log_level]}.log'
-        log_path = Path(log_dir, logfile)
+        self.log_dir = log_dir
+        self.log_file_name = log_file_name
+        self.maxBytes = maxBytes
+        self.backupCount = backupCount
+        self.formatter = logging.Formatter(
+            fmt='%(asctime)s %(levelname)s  %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S')
+        self.filehandlers = {}
+        self.steamhandler = None
 
-        ch = logging.StreamHandler()
-        fh = RotatingFileHandler(log_path,
-                                 encoding='utf-8',
-                                 maxBytes=log_maxBytes,
-                                 backupCount=backupCount)
+    def __create_handler(self, log_level: int):
+        if log_level not in self.filehandlers.keys():
+            if self.log_file_name:
+                log_file = self.log_dir / f'{self.log_file_name} - {logging.getLevelName(log_level)}.log'
+            else:
+                log_file = self.log_dir / f'{logging.getLevelName(log_level)}.log'
 
-        if log_level == logging.DEBUG:
-            formatter = logging.Formatter(
-                fmt=
-                '%(asctime)s-%(levelname)s-%(module)s-%(lineno)d  %(message)s',
-                datefmt='%Y-%m-%d %H:%M:%S')
-        else:
-            formatter = logging.Formatter(
-                fmt='%(asctime)s-%(levelname)s  %(message)s',
-                datefmt='%Y-%m-%d %H:%M:%S')
+            filehandler = RotatingFileHandler(log_file,
+                                              encoding='utf-8',
+                                              maxBytes=self.maxBytes,
+                                              backupCount=self.backupCount)
+            filehandler.setLevel(log_level)
+            filehandler.setFormatter(self.formatter)
+            self.filehandlers[log_level] = filehandler
 
-        ch.setFormatter(formatter)
-        ch.setLevel(log_level)
-        fh.setFormatter(formatter)
-        fh.setLevel(log_level)
+        if not self.steamhandler:
+            steamhandler = logging.StreamHandler()
+            steamhandler.setFormatter(self.formatter)
+            steamhandler.setLevel(logging.INFO)
+            self.steamhandler = steamhandler
 
-        logger.addHandler(ch)
-        logger.addHandler(fh)
+    def debug(self, message):
+        logger = logging.getLogger('debug')
+        log_level = logging.DEBUG
+        logger.setLevel(log_level)
 
-    return logger
+        self.__create_handler(log_level)
+        logger.addHandler(self.filehandlers[log_level])
+        logger.addHandler(self.steamhandler)
+
+        logger.debug(message)
+
+    def info(self, message):
+        logger = logging.getLogger('info')
+        log_level = logging.INFO
+        logger.setLevel(log_level)
+
+        self.__create_handler(log_level)
+        logger.addHandler(self.filehandlers[log_level])
+        logger.addHandler(self.steamhandler)
+
+        logger.info(message)
+
+    def warning(self, message):
+        logger = logging.getLogger('warning')
+        log_level = logging.WARNING
+        logger.setLevel(log_level)
+
+        self.__create_handler(log_level)
+        logger.addHandler(self.filehandlers[log_level])
+        logger.addHandler(self.steamhandler)
+
+        logger.warning(message)
+
+    def error(self, message):
+        logger = logging.getLogger('error')
+        log_level = logging.ERROR
+        logger.setLevel(log_level)
+
+        self.__create_handler(log_level)
+        logger.addHandler(self.filehandlers[log_level])
+        logger.addHandler(self.steamhandler)
+
+        logger.error(message)
+
+    def critical(self, message):
+        logger = logging.getLogger('critical')
+        log_level = logging.CRITICAL
+        logger.setLevel(log_level)
+
+        self.__create_handler(log_level)
+        logger.addHandler(self.filehandlers[log_level])
+        logger.addHandler(self.steamhandler)
+
+        logger.critical(message)
 
 
 if __name__ == '__main__':
-    log_dir = Path(__file__).parent / 'log'
+    log_dir = Path(__file__).parent.parent / 'log'
     log_dir.mkdir(exist_ok=True, parents=True)
-    logger = log(log_dir)
+    logger = Logger(log_dir)
 
     logger.debug('debug info')
     logger.info('info info')

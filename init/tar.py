@@ -12,7 +12,7 @@ from subprocess import PIPE, run
 from zipfile import ZipFile
 
 
-def pack_pyd(cur_dir, excepts=('launch.py', 'init.py')):
+def pack_pyd(cur_dir, excepts=('launch.py')):
     while True:
         try:
             from Cython.Build import cythonize
@@ -71,7 +71,8 @@ def pack_pyd(cur_dir, excepts=('launch.py', 'init.py')):
 def tar():
     temp_dir = Path(tempfile.mkdtemp())
     for file in root_dir.iterdir():
-        if file.name not in ('.git', '.venv', '.vscode', 'log', 'output'):
+        if file.name not in ('.git', '.venv', '.vscode', 'db', 'input', 'log',
+                             'output'):
             src = file
             dst = temp_dir / file.name
             if file.is_file():
@@ -79,6 +80,8 @@ def tar():
             else:
                 shutil.copytree(src, dst)
 
+    db_dir = temp_dir / 'db'
+    input_dir = temp_dir / 'input'
     log_dir = temp_dir / 'log'
     output_dir = temp_dir / 'output'
     dirs = (log_dir, output_dir)
