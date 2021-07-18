@@ -71,7 +71,8 @@ def main():
             brightness = 50 + int(power_percent * 0.3)
             devmode = DEVMODE('2560', '1600', '32', '60')
 
-        change_brightness(brightness)
+        change_brightness(100)
+        change_brightness(brightness - 100)
         set_display(devmode)
 
         logger.info(
